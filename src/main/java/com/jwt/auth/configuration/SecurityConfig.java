@@ -1,6 +1,8 @@
 package com.jwt.auth.configuration;
 
 import com.jwt.auth.component.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,16 +28,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);  // Tambahkan logger
+
     private final JwtUtil jwtUtils;
     private final UserService userService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        logger.info("Configuring security filter chain...");
+
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(Role.ADMIN.name())
                         .requestMatchers("/user/**").hasAuthority(Role.USER.name())
                         .anyRequest().authenticated())
@@ -44,19 +50,20 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtUtils, UsernamePasswordAuthenticationFilter.class);
 
+        logger.info("Security filter chain configured successfully.");
         return http.build();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
+        logger.info("Configuring authentication provider...");
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder()); // Encode password
-
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        logger.info("Authentication provider configured successfully.");
         return authenticationProvider;
     }
 
-    // Fungsi encode password
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
