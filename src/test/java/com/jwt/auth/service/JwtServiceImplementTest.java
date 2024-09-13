@@ -1,4 +1,4 @@
-package com.jwt.auth;
+package com.jwt.auth.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -16,7 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.jwt.auth.service.implement.JwtServiceImplement;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
