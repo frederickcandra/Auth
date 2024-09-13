@@ -1,6 +1,7 @@
 package com.jwt.auth.service.implement;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,10 @@ public class RedisServiceImplement implements RedisService {
 
     @Override
     public String getUserIdFromToken(String token) {
-        return (String) redisTemplate.opsForHash().get("TOKEN", token);
+        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
+        if (hashOperations == null) {
+            throw new IllegalStateException("HashOperations not initialized");
+        }
+        return hashOperations.get("TOKEN", token);
     }
 }
