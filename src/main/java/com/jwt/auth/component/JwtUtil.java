@@ -2,8 +2,8 @@ package com.jwt.auth.component;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,8 +26,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtUtil extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);  // Tambahkan logger
-
     private final JwtService jwtService;
     private final UserService userService;
 
@@ -37,29 +35,23 @@ public class JwtUtil extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
-
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
 
-        // Logging untuk memeriksa apakah header Authorization ada atau tidak
-        if (StringUtils.isEmpty(authHeader) || !org.apache.commons.lang3.StringUtils.startsWith(authHeader, "Bearer ")) {
-            logger.warn("Authorization header is missing or does not start with 'Bearer '");
+        if (StringUtils.isEmpty(authHeader)
+                || !org.apache.commons.lang3.StringUtils.startsWith(authHeader, "Bearer ")) {
             filterChain.doFilter(request, response);
+
             return;
         }
 
         jwt = authHeader.substring(7);
         username = jwtService.extractUsername(jwt);
 
-        // Logging untuk memastikan apakah username berhasil diekstrak dari JWT
-        logger.info("JWT extracted successfully. Username: {}", username);
-
         if (StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.loadUserByUsername(username);
-            // Logging untuk pengecekan validitas token
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                logger.info("JWT is valid. Setting authentication for user: {}", username);
                 SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, null,
@@ -68,8 +60,6 @@ public class JwtUtil extends OncePerRequestFilter {
 
                 securityContext.setAuthentication(token);
                 SecurityContextHolder.setContext(securityContext);
-            } else {
-                logger.error("Invalid JWT token for user: {}", username);
             }
         }
         filterChain.doFilter(request, response);

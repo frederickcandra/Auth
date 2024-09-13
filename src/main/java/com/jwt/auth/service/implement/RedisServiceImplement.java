@@ -1,36 +1,33 @@
 package com.jwt.auth.service.implement;
 
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.jwt.auth.model.User;
+import com.jwt.auth.model.UserRedis;
 import com.jwt.auth.service.RedisService;
 
 @Service
 public class RedisServiceImplement implements RedisService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, UserRedis> redisTemplate;
 
     @Override
-    public void saveUser(String userId, User user) {
-        redisTemplate.opsForHash().put("USER", userId, user);
-        redisTemplate.expire("USER", 1, TimeUnit.DAYS);
+    public void saveUser(String userId, UserRedis userRedis) {
+        redisTemplate.opsForValue().set(userId, userRedis);
     }
 
     @Override
-    public User getUser(String userId) {
-
-        return (User) redisTemplate.opsForHash().get("USER", userId);
+    public UserRedis getUser(String userId) {
+        return redisTemplate.opsForValue().get(userId);
     }
 
     @Override
     public void saveToken(String token, String userId) {
-        redisTemplate.opsForHash().put("TOKEN", token, userId);
-        redisTemplate.expire("TOKEN", 1, TimeUnit.DAYS);
+        UserRedis userRedis = redisTemplate.opsForValue().get(userId);
+        userRedis.setToken(token);
+        redisTemplate.opsForValue().set(userId, userRedis);
     }
 
     @Override

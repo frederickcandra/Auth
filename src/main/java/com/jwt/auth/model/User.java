@@ -1,17 +1,20 @@
 package com.jwt.auth.model;
 
-import lombok.Data;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class User implements UserDetails {
+
     private String username;
     private String password;
+    private String token;
     private Role role;
 
     @Override
@@ -42,6 +45,5 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-
     }
 }

@@ -1,12 +1,12 @@
 package com.jwt.auth.service;
 
-import com.jwt.auth.model.User;
+import com.jwt.auth.model.UserRedis;
 
 public interface RedisService {
 
-    void saveUser(String userId, User user);
+    void saveUser(String userId, UserRedis userRedis);
 
-    User getUser(String userId);
+    UserRedis getUser(String userId);
 
     void saveToken(String token, String userId);
 

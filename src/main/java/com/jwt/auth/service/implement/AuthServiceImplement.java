@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.jwt.auth.model.Role;
 import com.jwt.auth.model.User;
+import com.jwt.auth.model.UserRedis;
 import com.jwt.auth.request.LoginRequest;
 import com.jwt.auth.request.RefreshTokenRequest;
 import com.jwt.auth.request.RegisterRequest;
@@ -32,28 +33,42 @@ public class AuthServiceImplement implements AuthService {
     private final RedisService redisService;
 
     @Override
-    public User register(RegisterRequest registerRequest) {
+    public UserRedis register(RegisterRequest registerRequest) {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(Role.USER);
 
-        redisService.saveUser(user.getUsername(), user);
+        UserRedis userRedis = new UserRedis();
+        userRedis.setUsername(user.getUsername());
+        userRedis.setPassword(user.getPassword());
+        userRedis.setRole(user.getRole());
 
-        return user;
+        redisService.saveUser(user.getUsername(), userRedis);
+
+        return userRedis;
     }
 
     @Override
     public JwtResponse login(LoginRequest loginRequest) {
-        var user = redisService.getUser(loginRequest.getUsername());
-        if (user == null) {
+        // Fetch the UserRedis object from Redis
+        UserRedis userRedis = redisService.getUser(loginRequest.getUsername());
+        if (userRedis == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
+        // Manually map fields from UserRedis to User for authentication
+        User user = new User();
+        user.setUsername(userRedis.getUsername());
+        user.setPassword(userRedis.getPassword());
+        user.setRole(userRedis.getRole());
+
+        // Verify password
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
+        // Authenticate the user
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -63,9 +78,14 @@ public class AuthServiceImplement implements AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
+        // Generate tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
 
+        // Save the token in Redis
+        redisService.saveToken(token, user.getUsername());
+
+        // Return the JWT response
         JwtResponse jwtResponse = new JwtResponse();
         jwtResponse.setToken(token);
         jwtResponse.setRefreshToken(refreshToken);
@@ -75,14 +95,28 @@ public class AuthServiceImplement implements AuthService {
 
     @Override
     public JwtResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        // Extract the username from the refresh token
         String username = jwtService.extractUsername(refreshTokenRequest.getToken());
-        User user = redisService.getUser(username);
-        if (user == null) {
+
+        // Fetch the UserRedis object from Redis
+        UserRedis userRedis = redisService.getUser(username);
+        if (userRedis == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
 
+        // Manually map fields from UserRedis to User for token validation
+        User user = new User();
+        user.setUsername(userRedis.getUsername());
+        user.setPassword(userRedis.getPassword());
+        user.setRole(userRedis.getRole());
+
+        // Validate the token
         if (jwtService.isTokenValid(refreshTokenRequest.getToken(), user)) {
+            // Generate a new token
             var token = jwtService.generateToken(user);
+
+            // Create and return the JwtResponse with the new token and existing refresh
+            // token
             JwtResponse jwtResponse = new JwtResponse();
             jwtResponse.setToken(token);
             jwtResponse.setRefreshToken(refreshTokenRequest.getToken());
