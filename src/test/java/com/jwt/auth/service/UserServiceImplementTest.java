@@ -1,4 +1,4 @@
-package com.jwt.auth;
+package com.jwt.auth.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

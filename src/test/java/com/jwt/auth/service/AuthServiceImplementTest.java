@@ -1,4 +1,4 @@
-package com.jwt.auth;
+package com.jwt.auth.service;
 
 import com.jwt.auth.model.Role;
 import com.jwt.auth.model.User;
@@ -6,8 +6,6 @@ import com.jwt.auth.model.UserRedis;
 import com.jwt.auth.request.LoginRequest;
 import com.jwt.auth.request.RegisterRequest;
 import com.jwt.auth.response.JwtResponse;
-import com.jwt.auth.service.JwtService;
-import com.jwt.auth.service.RedisService;
 import com.jwt.auth.service.implement.AuthServiceImplement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
