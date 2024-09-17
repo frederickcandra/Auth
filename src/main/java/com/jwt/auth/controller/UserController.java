@@ -13,6 +13,6 @@ public class UserController {
     @Secured("ROLE_USER")
     public String helloWorld() {
 
-        return "Hello world";
+        return "Hello User";
     }
 }

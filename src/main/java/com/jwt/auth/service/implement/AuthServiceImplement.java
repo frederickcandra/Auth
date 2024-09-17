@@ -2,6 +2,8 @@ package com.jwt.auth.service.implement;
 
 import java.util.HashMap;
 
+import com.jwt.auth.request.ChangeRoleRequest;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -126,4 +128,27 @@ public class AuthServiceImplement implements AuthService {
 
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
     }
-}
+
+    @Override
+
+    public JwtResponse changeRole(ChangeRoleRequest changeRoleRequest) {
+            // Fetch the UserRedis object based on username
+
+            UserRedis userRedis = redisService.getUser(changeRoleRequest.getUsername());
+            if (userRedis == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+            }
+
+            // Update the role in the UserRedis object
+            userRedis.setRole(Role.ADMIN);
+
+            // Save the updated user back to Redis
+            redisService.saveUser(userRedis.getUsername(), userRedis);
+
+            // Return a successful response
+            JwtResponse jwtResponse = new JwtResponse();
+            jwtResponse.setSetMessage("Success Change Role");
+            jwtResponse.setRole(Role.ADMIN);
+            return jwtResponse;
+        }
+    }

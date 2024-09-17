@@ -1,5 +1,6 @@
 package com.jwt.auth.controller;
 
+import com.jwt.auth.request.ChangeRoleRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +63,16 @@ public class AuthController {
     })
     public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
         JwtResponse jwtResponse = authService.login(loginRequest);
+
+        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+    }
+    @Operation(summary = "Change Role")
+    @PostMapping("/changeRole")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode  ="200", description = "Change Role successfully", content = @Content(schema = @Schema(implementation = JwtResponse.class)))
+    })
+    public ResponseEntity<JwtResponse> changeRole (@RequestBody ChangeRoleRequest changerolerequest) {
+        JwtResponse jwtResponse = authService.changeRole(changerolerequest);
 
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
