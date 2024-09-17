@@ -11,4 +11,6 @@ public interface RedisService {
     void saveToken(String token, String userId);
 
     String getUserIdFromToken(String token);
+
+    void saveRefreshToken(String refreshToken, String userId);
 }

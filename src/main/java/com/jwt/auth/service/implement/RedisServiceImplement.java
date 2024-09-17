@@ -30,6 +30,12 @@ public class RedisServiceImplement implements RedisService {
         userRedis.setToken(token);
         redisTemplate.opsForValue().set(userId, userRedis);
     }
+    @Override
+    public void saveRefreshToken(String refreshToken, String userId) {
+        UserRedis userRedis = redisTemplate.opsForValue().get(userId);
+        userRedis.setRefreshToken(refreshToken);
+        redisTemplate.opsForValue().set(userId, userRedis);
+    }
 
     @Override
     public String getUserIdFromToken(String token) {
