@@ -48,6 +48,7 @@ public class AuthServiceImplement implements AuthService {
 
         redisService.saveUser(user.getUsername(), userRedis);
 
+
         return userRedis;
     }
 
@@ -91,6 +92,8 @@ public class AuthServiceImplement implements AuthService {
         JwtResponse jwtResponse = new JwtResponse();
         jwtResponse.setToken(token);
         jwtResponse.setRefreshToken(refreshToken);
+        jwtResponse.setRole(user.getRole());
+        jwtResponse.setMessage("PROFILE INFORMATION");
 
         return jwtResponse;
     }
@@ -123,6 +126,7 @@ public class AuthServiceImplement implements AuthService {
             jwtResponse.setToken(token);
             jwtResponse.setRefreshToken(refreshTokenRequest.getToken());
 
+
             return jwtResponse;
         }
 
@@ -147,7 +151,7 @@ public class AuthServiceImplement implements AuthService {
 
             // Return a successful response
             JwtResponse jwtResponse = new JwtResponse();
-            jwtResponse.setSetMessage("Success Change Role");
+            jwtResponse.setMessage("Success Change Role");
             jwtResponse.setRole(Role.ADMIN);
             return jwtResponse;
         }
