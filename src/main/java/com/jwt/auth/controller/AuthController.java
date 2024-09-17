@@ -51,6 +51,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Token refreshed successfully", content = @Content(schema = @Schema(implementation = JwtResponse.class)))
     })
     public ResponseEntity<JwtResponse> refresh(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        System.out.println("Received refresh token: " + refreshTokenRequest.getRefreshToken());
         JwtResponse jwtResponse = authService.refreshToken(refreshTokenRequest);
 
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
@@ -76,4 +77,5 @@ public class AuthController {
 
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
+
 }

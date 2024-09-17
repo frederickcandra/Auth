@@ -12,5 +12,6 @@ public class UserRedis {
     private String username;
     private String password;
     private String token;
+    private String refreshToken;
     private Role role;
 }

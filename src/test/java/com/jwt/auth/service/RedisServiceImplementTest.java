@@ -82,17 +82,5 @@ class RedisServiceImplementTest {
         verify(valueOperations, times(1)).set(userId, userRedis);
     }
 
-//    @Test
-//    void testGetUserIdFromToken() {
-//        String token = "testToken";
-//        String expectedUserId = "testUserId";
-//
-//        // Mock the behavior for hash operations (here the key is "TOKEN" and token)
-//        when(hashOperations.get("TOKEN", token)).thenReturn(expectedUserId);
-//
-//        String result = redisService.getUserIdFromToken(token);
-//
-//        assertEquals(expectedUserId, result);
-//        verify(hashOperations, times(1)).get("TOKEN", token);
-//    }
+
 }

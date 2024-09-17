@@ -64,35 +64,6 @@ class JwtServiceImplementTest {
         assertTrue(refreshToken.length() > 0);
     }
 
-//    @Test
-//    void testExtractUsername() {
-//        String extractedUsername = jwtService.extractUsername(token);
-//        assertEquals(username, extractedUsername);
-//    }
-//
-//    @Test
-//    void testIsTokenValid() {
-//        boolean isValid = jwtService.isTokenValid(token, userDetails);
-//        assertTrue(isValid);
-//    }
-//
-//    @Test
-//    void testIsTokenExpired() {
-//        // Simulating an expired token by setting an expiration date in the past
-//        String expiredToken = Jwts.builder().setSubject(username)
-//                .setIssuedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24))
-//                .setExpiration(new Date(System.currentTimeMillis() - 1000 * 60 * 60))
-//                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
-//                .compact();
-//
-//        boolean isExpired = jwtService.isTokenValid(expiredToken, userDetails);
-//        assertFalse(isExpired);
-//    }
-//
-//    @Test
-//    void testExtractClaims() {
-//        Claims claims = jwtService.extractAllClaims(token);
-//        assertNotNull(claims);
-//        assertEquals(username, claims.getSubject());
-//    }
+
+
 }

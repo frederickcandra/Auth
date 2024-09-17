@@ -3,7 +3,6 @@ package com.jwt.auth.service.implement;
 import java.util.HashMap;
 
 import com.jwt.auth.request.ChangeRoleRequest;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,7 +47,6 @@ public class AuthServiceImplement implements AuthService {
 
         redisService.saveUser(user.getUsername(), userRedis);
 
-
         return userRedis;
     }
 
@@ -70,7 +68,6 @@ public class AuthServiceImplement implements AuthService {
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
-
         // Authenticate the user
         try {
             authenticationManager.authenticate(
@@ -85,13 +82,21 @@ public class AuthServiceImplement implements AuthService {
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
 
-        // Save the token in Redis
+        // Save the token and refresh token in Redis
         redisService.saveToken(token, user.getUsername());
+        redisService.saveRefreshToken(refreshToken, user.getUsername());
+
+        // Simpan refresh token ke dalam userRedis dan perbarui di Redis
+        userRedis.setRefreshToken(refreshToken);
+        redisService.saveUser(userRedis.getUsername(), userRedis);
+
+        //save refreshToken ke user
+        user.setRefreshToken(refreshToken);
 
         // Return the JWT response
         JwtResponse jwtResponse = new JwtResponse();
         jwtResponse.setToken(token);
-        jwtResponse.setRefreshToken(refreshToken);
+        jwtResponse.setRefreshToken(refreshToken);  // Pastikan refresh token dikembalikan
         jwtResponse.setRole(user.getRole());
         jwtResponse.setMessage("PROFILE INFORMATION");
 
@@ -100,37 +105,46 @@ public class AuthServiceImplement implements AuthService {
 
     @Override
     public JwtResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        // Extract the username from the refresh token
-        String username = jwtService.extractUsername(refreshTokenRequest.getToken());
+        // Validasi apakah token kosong atau null
 
-        // Fetch the UserRedis object from Redis
-        UserRedis userRedis = redisService.getUser(username);
-        if (userRedis == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        UserRedis userRedis = redisService.getUser(refreshTokenRequest.getUsername());
+        String refreshToken = userRedis.getRefreshToken();
+
+        if (userRedis == null & refreshToken == null || refreshToken.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+
         }
 
-        // Manually map fields from UserRedis to User for token validation
+        // Extract the username from the refresh token
+        String username = jwtService.extractUsername(refreshToken);
+
+        // Map fields from UserRedis to User
         User user = new User();
         user.setUsername(userRedis.getUsername());
         user.setPassword(userRedis.getPassword());
         user.setRole(userRedis.getRole());
 
-        // Validate the token
-        if (jwtService.isTokenValid(refreshTokenRequest.getToken(), user)) {
-            // Generate a new token
-            var token = jwtService.generateToken(user);
+        // Validate the refresh token
+        if (jwtService.isTokenValid(refreshToken, user)) {
+            // Generate a new access token
+            String newAccessToken = jwtService.generateToken(user);
+            String newRefreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
 
-            // Create and return the JwtResponse with the new token and existing refresh
-            // token
+            // Save the new tokens in Redis and remove the old refresh token
+            redisService.saveToken(newAccessToken, user.getUsername());
+            redisService.saveRefreshToken(newRefreshToken, user.getUsername());
+
+            // Create and return the JwtResponse with the new tokens
             JwtResponse jwtResponse = new JwtResponse();
-            jwtResponse.setToken(token);
-            jwtResponse.setRefreshToken(refreshTokenRequest.getToken());
-
+            jwtResponse.setToken(newAccessToken);
+            jwtResponse.setRefreshToken(newRefreshToken);
+            jwtResponse.setRole(user.getRole());
+            jwtResponse.setMessage("Refresh Token Success");
 
             return jwtResponse;
         }
 
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
     }
 
     @Override
@@ -152,7 +166,9 @@ public class AuthServiceImplement implements AuthService {
             // Return a successful response
             JwtResponse jwtResponse = new JwtResponse();
             jwtResponse.setMessage("Success Change Role");
-            jwtResponse.setRole(Role.ADMIN);
+            jwtResponse.setRole(userRedis.getRole());
+            jwtResponse.setToken(userRedis.getToken());
+
             return jwtResponse;
         }
     }
