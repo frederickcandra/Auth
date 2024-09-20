@@ -2,7 +2,7 @@ package com.jwt.auth.service.implement;
 
 import java.util.HashMap;
 
-import com.jwt.auth.request.ChangeRoleRequest;
+import com.jwt.auth.request.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,9 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.jwt.auth.model.Role;
 import com.jwt.auth.model.User;
 import com.jwt.auth.model.UserRedis;
-import com.jwt.auth.request.LoginRequest;
-import com.jwt.auth.request.RefreshTokenRequest;
-import com.jwt.auth.request.RegisterRequest;
 import com.jwt.auth.response.JwtResponse;
 import com.jwt.auth.service.AuthService;
 import com.jwt.auth.service.JwtService;
@@ -148,7 +145,6 @@ public class AuthServiceImplement implements AuthService {
     }
 
     @Override
-
     public JwtResponse changeRole(ChangeRoleRequest changeRoleRequest) {
             // Fetch the UserRedis object based on username
 
@@ -171,4 +167,32 @@ public class AuthServiceImplement implements AuthService {
 
             return jwtResponse;
         }
+
+    @Override
+    public boolean validate(TokenRequest tokenRequest) {
+        // Extract the username from the refresh token
+        String username = jwtService.extractUsername(tokenRequest.getToken());
+
+        // Fetch the UserRedis object from Redis
+        UserRedis userRedis = redisService.getUser(username);
+
+        if (userRedis == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+
+        // Manually map fields from UserRedis to User for token validation
+        User user = new User();
+        user.setUsername(userRedis.getUsername());
+        user.setPassword(userRedis.getPassword());
+        user.setRole(userRedis.getRole());
+
+        // Validate the token
+        if (jwtService.isTokenValid(tokenRequest.getToken(), user)) {
+            return true;
+        }
+
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
     }
+
+    }
+

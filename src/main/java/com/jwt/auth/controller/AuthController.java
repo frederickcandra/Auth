@@ -1,6 +1,7 @@
 package com.jwt.auth.controller;
 
-import com.jwt.auth.request.ChangeRoleRequest;
+import com.jwt.auth.request.*;
+import com.jwt.auth.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jwt.auth.model.User;
 import com.jwt.auth.model.UserRedis;
-import com.jwt.auth.request.LoginRequest;
-import com.jwt.auth.request.RefreshTokenRequest;
-import com.jwt.auth.request.RegisterRequest;
 import com.jwt.auth.response.JwtResponse;
 import com.jwt.auth.service.implement.AuthServiceImplement;
 
@@ -77,5 +75,19 @@ public class AuthController {
 
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
+    @Operation(summary = "Validate Token")
+    @PostMapping("/validate")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token is valid", content = @Content(schema = @Schema(implementation = Boolean.class)))
+    })
+    public ResponseEntity<Boolean> refresh(@RequestBody TokenRequest tokenRequest) {
+        boolean status = authService.validate(tokenRequest);
+
+        return new ResponseEntity<>(status, HttpStatus.OK);
+    }
+
+
+
+
 
 }

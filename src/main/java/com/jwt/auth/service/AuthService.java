@@ -1,10 +1,7 @@
 package com.jwt.auth.service;
 
 import com.jwt.auth.model.UserRedis;
-import com.jwt.auth.request.ChangeRoleRequest;
-import com.jwt.auth.request.LoginRequest;
-import com.jwt.auth.request.RefreshTokenRequest;
-import com.jwt.auth.request.RegisterRequest;
+import com.jwt.auth.request.*;
 import com.jwt.auth.response.JwtResponse;
 
 public interface AuthService {
@@ -16,4 +13,7 @@ public interface AuthService {
     JwtResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
 
     JwtResponse changeRole(ChangeRoleRequest changeRoleRequest);
+
+    boolean validate(TokenRequest tokenRequest);
+
 }
