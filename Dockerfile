@@ -7,7 +7,7 @@ WORKDIR /app
 # Salin file pom.xml terlebih dahulu untuk caching dependencies
 COPY pom.xml ./
 
-# Download dependencies tanpa melakukan build
+    # Download dependencies tanpa melakukan build
 RUN mvn dependency:go-offline -B
 
 # Salin source code ke dalam container
