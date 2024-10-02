@@ -1,6 +1,7 @@
 package com.jwt.auth.controller;
 
 import com.jwt.auth.request.*;
+import com.jwt.auth.service.EventProducer;
 import com.jwt.auth.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,11 @@ public class AuthController {
     @Autowired
     private AuthServiceImplement authService;
 
+    private final EventProducer eventProducer;  // Gunakan final untuk memastikan inisialisasi melalui constructor
+
+    // Constructor dihasilkan oleh @RequiredArgsConstructor
+    // Spring akan menginjeksi EventProducer ke dalam constructor ini
+
     @Operation(summary = "Register user and save to Redis")
     @PostMapping("/register")
     @ApiResponses(value = {
@@ -62,19 +68,20 @@ public class AuthController {
     })
     public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
         JwtResponse jwtResponse = authService.login(loginRequest);
-
+        eventProducer.sendLoginEvent(loginRequest.getUsername());
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
+
     @Operation(summary = "Change Role")
     @PostMapping("/changeRole")
     @ApiResponses(value = {
             @ApiResponse(responseCode  ="200", description = "Change Role successfully", content = @Content(schema = @Schema(implementation = JwtResponse.class)))
     })
-    public ResponseEntity<JwtResponse> changeRole (@RequestBody ChangeRoleRequest changerolerequest) {
+    public ResponseEntity<JwtResponse> changeRole(@RequestBody ChangeRoleRequest changerolerequest) {
         JwtResponse jwtResponse = authService.changeRole(changerolerequest);
-
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
+
     @Operation(summary = "Validate Token")
     @PostMapping("/validate")
     @ApiResponses(value = {
@@ -82,12 +89,6 @@ public class AuthController {
     })
     public ResponseEntity<Boolean> refresh(@RequestBody TokenRequest tokenRequest) {
         boolean status = authService.validate(tokenRequest);
-
         return new ResponseEntity<>(status, HttpStatus.OK);
     }
-
-
-
-
-
 }

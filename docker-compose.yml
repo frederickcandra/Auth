@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_net
+
+  auth:
+    build: ./auth
+    container_name: auth
+    restart: on-failure
+    env_file: ./.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - db
+    networks:
+      - app_net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${POSTGRESDB_DOCKER_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  asteroids:
+    build: ./asteroids
+    container_name: asteroids
+    restart: on-failure
+    env_file: ./.env
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+      - db
+      - auth
+    networks:
+      - app_net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${POSTGRESDB_DOCKER_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  db:
+    image: postgres
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${POSTGRESDB_LOCAL_PORT}:${POSTGRESDB_DOCKER_PORT}"
+    networks:
+      - app_net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
